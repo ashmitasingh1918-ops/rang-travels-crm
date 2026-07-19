@@ -1,25 +1,30 @@
 # Rang Travels CRM
 
-## Project Overview
+Rang Travels CRM is a production-ready, industry-grade customer relationship management system specifically built for tour operators, travel agencies, and hotel coordinators. 
 
-Rang Travels CRM (Customer Relationship Management) is a web-based Tour and Hotel Management System designed to streamline travel operations for Rang Travels.
+The architecture is built layout-first to facilitate multi-developer workflows, with a separated React/Vite front-end client and a FastAPI asynchronous microservice back-end engine.
 
-The system enables staff to:
-- Create and manage client tours
-- Generate unique Tour IDs
-- Select destinations using standardized city codes
-- Search and manage hotels
-- Send customizable email requests to hotels
-- Track tour progress from planning to completion
+---
 
-## Tech Stack
+## Features
 
-- Frontend: React + Vite + Bootstrap
-- Backend: Node.js + Express.js
-- Database: MongoDB
-- Authentication: JWT
-- Email Service: Nodemailer
+- **Leads Pipeline**: Track, qualify, and convert incoming tours leads.
+- **Tour Generation**: Create unique, system-standardized Tour IDs using region specific codes.
+- **B2B Hotel Integrations**: Send dynamic, templated request e-mails to hoteliers containing PDF tour quotations.
+- **SQLAlchemy 2.0 Async Core**: High-throughput database sessions supporting high concurrency.
+- **JWT Refresh Tokens**: Rotation validation mechanism for security safety.
 
-## Project Status
+---
 
-🚧 Project setup in progress.
+## Workspace Structure
+
+```
+rang-travels-crm/
+├── frontend/             # React + Vite client (Tailwind CSS, Zustand, Axios interceptors)
+├── backend/              # FastAPI server (SQLAlchemy 2.0, Alembic, uvicorn async)
+├── docs/                 # System Architecture & Documentation manuals
+├── docker-compose.yml    # Development system database servers (Postgres + Redis)
+└── README.md             # Developer handbook onboarding manual
+```
+
+For setup instructions, guidelines, and specifications, refer to [UserGuide.md](./docs/UserGuide.md) inside the `docs/` manual directory.
