@@ -1,11 +1,14 @@
 const express = require("express");
 const cors = require("cors");
 const prisma = require("./config/prisma");
+const cityRoutes = require("./routes/cityRoutes");
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+app.use("/api/v1/cities", cityRoutes);
 
 app.get("/", (req, res) => {
   res.send("Rang Travels CRM Backend is running...");
