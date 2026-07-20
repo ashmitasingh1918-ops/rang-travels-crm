@@ -1,0 +1,1 @@
+// Response handler utility placeholder

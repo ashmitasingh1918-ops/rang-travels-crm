@@ -1,0 +1,1 @@
+// Prisma config client placeholder

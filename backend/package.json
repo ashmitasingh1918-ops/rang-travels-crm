@@ -1,0 +1,8 @@
+{
+  "name": "rang-travels-crm-backend",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {},
+  "dependencies": {},
+  "devDependencies": {}
+}

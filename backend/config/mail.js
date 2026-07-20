@@ -1,0 +1,1 @@
+// Mail transporter config placeholder
