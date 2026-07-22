@@ -2,6 +2,7 @@ import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Cities from "../pages/Cities";
 import Hotels from "../pages/Hotels";
+import Tours from "../pages/Tours";
 
 function AppRoutes() {
   return (
@@ -12,7 +13,7 @@ function AppRoutes() {
       
       {/* Route placeholders for other sidebar items to avoid breaking navigation */}
       <Route path="/dashboard" element={<div className="container-fluid"><h1 className="h3 mb-2 text-dark font-weight-bold">Dashboard</h1><p className="text-secondary fs-7">Overview of your operations data and stats.</p></div>} />
-      <Route path="/tours" element={<div className="container-fluid"><h1 className="h3 mb-2 text-dark font-weight-bold">Tours</h1><p className="text-secondary fs-7">Manage your tour itineraries and listings.</p></div>} />
+      <Route path="/tours" element={<Tours />} />
       <Route path="/clients" element={<div className="container-fluid"><h1 className="h3 mb-2 text-dark font-weight-bold">Clients</h1><p className="text-secondary fs-7">Client accounts database.</p></div>} />
       <Route path="/agents" element={<div className="container-fluid"><h1 className="h3 mb-2 text-dark font-weight-bold">Agents</h1><p className="text-secondary fs-7">Partner agent networks configuration.</p></div>} />
       <Route path="/email-center" element={<div className="container-fluid"><h1 className="h3 mb-2 text-dark font-weight-bold">Email Center</h1><p className="text-secondary fs-7">Send alerts and mail newsletters to customers.</p></div>} />

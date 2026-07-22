@@ -14,7 +14,6 @@ function Hotels() {
     { id: 6, name: 'Shimla', code: 'SHM' }
   ];
 
-  // Pre-seed mock data as starting state
   const [hotels, setHotels] = useState([
     {
       id: 1,
@@ -77,7 +76,6 @@ function Hotels() {
   const [hotelToEdit, setHotelToEdit] = useState(null);
   const [hotelToDelete, setHotelToDelete] = useState(null);
 
-  // Filter processing
   const filteredHotels = hotels.filter((hotel) => {
     const matchesSearch = hotel.name.toLowerCase().includes(search.toLowerCase()) || 
       (hotel.contactPerson && hotel.contactPerson.toLowerCase().includes(search.toLowerCase())) ||

@@ -49,3 +49,132 @@ body {
     background-color: #f1f5f9;
     color: #0f172a !important;
 }
+
+/* Tours Page Color Palette & Fonts */
+.font-display {
+    font-family: 'Manrope', sans-serif !important;
+}
+.bg-tours-light {
+    background-color: hsl(210 20% 98%) !important;
+}
+.border-soft {
+    border: 1px solid hsl(214 20% 90%) !important;
+}
+.rounded-2xl {
+    border-radius: 1rem !important;
+}
+
+/* Tailwind spacing & grids utilities */
+.space-y-6 > * + * {
+    margin-top: 1.5rem !important;
+}
+.space-y-3 > * + * {
+    margin-top: 0.75rem !important;
+}
+.grid-cols-2 {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+.tracking-widest {
+    letter-spacing: 0.1em !important;
+}
+
+/* Tours Row Status Badge Colors */
+.bg-amber-50 { background-color: #fef3c7 !important; }
+.text-amber-700 { color: #b45309 !important; }
+.bg-amber-500 { background-color: #f59e0b !important; }
+
+.bg-violet-50 { background-color: #f5f3ff !important; }
+.text-violet-700 { color: #6d28d9 !important; }
+.bg-violet-500 { background-color: #8b5cf6 !important; }
+
+.bg-sky-50 { background-color: #f0f9ff !important; }
+.text-sky-700 { color: #0369a1 !important; }
+.bg-sky-500 { background-color: #0ea5e9 !important; }
+
+.bg-emerald-50 { background-color: #ecfdf5 !important; }
+.text-emerald-700 { color: #047857 !important; }
+.bg-emerald-500 { background-color: #10b981 !important; }
+
+.bg-teal-50 { background-color: #f0fdfa !important; }
+.text-teal-700 { color: #0f766e !important; }
+.bg-teal-500 { background-color: #14b8a6 !important; }
+
+.bg-rose-50 { background-color: #fff1f2 !important; }
+.text-rose-700 { color: #be123c !important; }
+.bg-rose-500 { background-color: #f43f5e !important; }
+
+.text-slate-600 { color: #475569 !important; }
+.text-rose-600 { color: #e11d48 !important; }
+
+/* Custom hover effects for Tours Card */
+.tour-card-hover {
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.tour-card-hover:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Grids support */
+.grid {
+    display: grid !important;
+}
+.gap-4 {
+    gap: 1rem !important;
+}
+.gap-2 {
+    gap: 0.5rem !important;
+}
+@media (min-width: 768px) {
+    .md\:grid-cols-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+    .md\:p-8 {
+        padding: 2rem !important;
+    }
+}
+@media (min-width: 1200px) {
+    .xl\:grid-cols-3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+}
+
+/* Spinner removals for inputs */
+.no-spin::-webkit-inner-spin-button,
+.no-spin::-webkit-outer-spin-button {
+    -webkit-appearance: none !important;
+    margin: 0 !important;
+}
+.no-spin {
+    -moz-appearance: textfield !important;
+}
+
+/* Micro transitions & scale effects */
+.transition-click {
+    transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.15s ease, border-color 0.15s ease !important;
+}
+
+.transition-click:active {
+    transform: scale(0.98) !important;
+}
+
+.transition-hover-card {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.transition-hover-card:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
+}
+
+/* Overline helper */
+.overline-title {
+    font-size: 0.65rem !important;
+    letter-spacing: 0.15em !important;
+    font-weight: 700 !important;
+    color: #64748b !important;
+    text-transform: uppercase !important;
+}
+
+
