@@ -1,6 +1,7 @@
 {
   "name": "rang-travels-crm-backend",
   "version": "1.0.0",
+  "description": "Backend for Rang Travels CRM",
   "main": "server.js",
   "type": "commonjs",
   "scripts": {
@@ -12,16 +13,17 @@
     "seed": "node prisma/seed.js"
   },
   "dependencies": {
-    "@prisma/client": "^6.19.0",
+    "@prisma/client": "^6.19.3",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
-    "dotenv": "^17.2.2",
-    "express": "^5.1.0",
-    "jsonwebtoken": "^9.0.3"
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "pg": "^8.16.3"
   },
   "devDependencies": {
     "nodemon": "^3.1.10",
-    "prisma": "^6.19.0"
+    "prisma": "^6.19.3"
   }
 }
