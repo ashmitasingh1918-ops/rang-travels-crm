@@ -1,13 +1,27 @@
 const express = require("express");
 const cors = require("cors");
+const cookieParser = require("cookie-parser");
+
 const prisma = require("./config/prisma");
+
+const authRoutes = require("./routes/authRoutes");
 const cityRoutes = require("./routes/cityRoutes");
 
 const app = express();
 
-app.use(cors());
-app.use(express.json());
+// Middleware
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
 
+app.use(express.json());
+app.use(cookieParser());
+
+// Routes
+app.use("/api/auth", authRoutes);
 app.use("/api/v1/cities", cityRoutes);
 
 app.get("/", (req, res) => {
