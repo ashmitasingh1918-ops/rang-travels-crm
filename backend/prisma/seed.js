@@ -5,9 +5,12 @@ const prisma = new PrismaClient();
 
 async function main() {
 
+    const adminEmail = process.env.ADMIN_EMAIL || "admin@rangtravels.com";
+    const adminName = process.env.ADMIN_NAME || "Admin User";
+
     const admin = await prisma.user.findUnique({
         where: {
-            email: "admin@rangtravels.com"
+            email: adminEmail
         }
     });
 
@@ -24,8 +27,8 @@ async function main() {
 
     await prisma.user.create({
         data: {
-              fullName: process.env.ADMIN_NAME,
-              email: process.env.ADMIN_EMAIL,
+              fullName: adminName,
+              email: adminEmail,
                password: hashedPassword,
                role: "ADMIN"
         }
