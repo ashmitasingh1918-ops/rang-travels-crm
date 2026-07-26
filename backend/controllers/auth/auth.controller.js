@@ -40,7 +40,7 @@ const login = async (req, res) => {
                 message: "Invalid Email or Password"
             });
         }
-        const token = jwt.sign(
+                const token = jwt.sign(
             {
                 id: user.id,
                 fullName: user.fullName,
@@ -49,7 +49,7 @@ const login = async (req, res) => {
             },
             process.env.JWT_SECRET,
             {
-                expiresIn: "1d"
+                expiresIn: process.env.JWT_EXPIRES_IN || "1d"
             }
         );
 

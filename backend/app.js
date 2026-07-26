@@ -6,7 +6,7 @@ const prisma = require("./config/prisma");
 
 const authRoutes = require("./routes/authRoutes");
 const cityRoutes = require("./routes/cityRoutes");
-
+const clientRoutes = require("./routes/clientRoutes");
 const app = express();
 
 // Middleware
@@ -23,6 +23,7 @@ app.use(cookieParser());
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/v1/cities", cityRoutes);
+app.use("/api/v1/clients", clientRoutes);
 
 app.get("/", (req, res) => {
   res.send("Rang Travels CRM Backend is running...");
