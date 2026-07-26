@@ -1,4 +1,4 @@
-const prisma = require("../config/prisma");
+const prisma = require("../../config/prisma");
 
 /**
  * Get all cities
@@ -188,7 +188,7 @@ const updateCity = async (req, res) => {
     const updateData = {};
     if (name !== undefined) updateData.name = name.trim();
     if (state !== undefined) updateData.state = state.trim();
-    
+
     if (code !== undefined) {
       const normalizedCode = code.trim().toUpperCase();
       // Prevent duplicate city code if code has changed

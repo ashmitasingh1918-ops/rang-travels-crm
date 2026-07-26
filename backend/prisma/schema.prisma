@@ -13,15 +13,15 @@ enum Role {
 }
 
 model User {
-  id                   Int      @id @default(autoincrement())
-  fullName             String
-  email                String   @unique
-  password             String
-  role                 Role     @default(STAFF)
-  isActive             Boolean  @default(true)
-  mustChangePassword   Boolean  @default(true)
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  id                 Int      @id @default(autoincrement())
+  fullName           String
+  email              String   @unique
+  password           String
+  role               Role     @default(STAFF)
+  isActive           Boolean  @default(true)
+  mustChangePassword Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 }
 
 model City {
@@ -29,6 +29,22 @@ model City {
   name      String
   state     String
   code      String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+
+  clients   Client[]
+}
+
+model Client {
+  id         Int      @id @default(autoincrement())
+  fullName   String
+  phone      String   @unique
+  email      String?  @unique
+  address    String?
+
+  isActive   Boolean  @default(true)
+
+  cityId     Int
+  city       City     @relation(fields: [cityId], references: [id])
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }

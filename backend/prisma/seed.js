@@ -15,7 +15,21 @@ async function main() {
     });
 
     if (admin) {
-        console.log("Admin already exists.");
+        console.log("Admin already exists. Updating password and name from environment variables...");
+        const hashedPassword = await bcrypt.hash(
+            process.env.ADMIN_PASSWORD || "Admin@123",
+            10
+        );
+        await prisma.user.update({
+            where: {
+                email: adminEmail
+            },
+            data: {
+                fullName: adminName,
+                password: hashedPassword
+            }
+        });
+        console.log("Admin details updated successfully!");
         return;
     }
 
