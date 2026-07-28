@@ -11,14 +11,11 @@ import EmailCenter from "../pages/EmailCenter";
 import StaffManagement from "../pages/StaffManagement";
 import Reports from "../pages/Reports";
 import Settings from "../pages/Settings";
-<<<<<<< Updated upstream
 import Bookings from "../pages/Bookings";
-=======
+
 import Profile from "../pages/Profile";
 import Security from "../pages/Security";
 import CompanyDetails from "../pages/CompanyDetails";
-
->>>>>>> Stashed changes
 
 function AppRoutes() {
   return (
@@ -32,15 +29,13 @@ function AppRoutes() {
       <Route path="/email-center" element={<EmailCenter />} />
       <Route path="/staff-management" element={<StaffManagement />} />
       <Route path="/reports" element={<Reports />} />
-      <Route path="/settings" element={<Settings />} />
-<<<<<<< Updated upstream
       <Route path="/bookings" element={<Bookings />} />
-=======
+
+      {/* Settings */}
       <Route path="/settings" element={<Settings />} />
       <Route path="/settings/profile" element={<Profile />} />
       <Route path="/settings/security" element={<Security />} />
       <Route path="/settings/company" element={<CompanyDetails />} />
->>>>>>> Stashed changes
 
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>

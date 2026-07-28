@@ -24,36 +24,31 @@ export const sidebarMenu = [
         icon: "bi bi-building",
     },
     {
-<<<<<<< Updated upstream
-        id: 11,
+        id: 5,
         title: "Bookings",
         path: "/bookings",
         icon: "bi bi-journal-check",
     },
     {
         id: 6,
-=======
-        id: 5,
->>>>>>> Stashed changes
         title: "Cities",
         path: "/cities",
         icon: "bi bi-geo-alt",
     },
     {
-        id: 6,
+        id: 7,
         title: "Email Center",
         path: "/email-center",
         icon: "bi bi-envelope",
     },
     {
-        id: 7,
+        id: 8,
         title: "Staff Management",
         path: "/staff-management",
         icon: "bi bi-shield",
     },
-    
     {
-        id: 8,
+        id: 9,
         title: "Settings",
         path: "/settings",
         icon: "bi bi-gear",
