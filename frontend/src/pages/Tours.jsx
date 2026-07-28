@@ -1,9 +1,7 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { Plus, Search, Calendar, Users, MapPin, Mail, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import TourWizard from "../features/tour-wizard/TourWizard";
-import { getTours, createTour, updateTour, updateTripStatus, deleteTour } from "../services/tourService";
-import { getCities } from "../services/cityService";
 
 // Reusable micro-component for card details
 function InfoRow({ icon: Icon, text }) {
@@ -38,8 +36,8 @@ const getStatusConfig = (status) => {
 };
 
 function Tours({
-  tours: initialTours = null,
-  cities: propCities = null,
+  tours: initialTours = DEMO_TOURS,
+  cities = DEMO_CITIES,
   cityImageMap = DEMO_IMAGE_MAP,
   onNewTour = null,
   onEdit = () => {},
@@ -47,58 +45,11 @@ function Tours({
   onSendEmail = () => {},
   onStatusChange = () => {}
 }) {
-  const [toursList, setToursList] = useState(initialTours || DEMO_TOURS);
-  const [citiesList, setCitiesList] = useState(propCities || DEMO_CITIES);
-  const [loading, setLoading] = useState(false);
+  const [toursList, setToursList] = useState(initialTours);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [editingTour, setEditingTour] = useState(null);
-
-  // Fetch Cities & Tours from Backend API
-  const fetchBackendData = async () => {
-    try {
-      setLoading(true);
-      const [citiesRes, toursRes] = await Promise.allSettled([
-        getCities(),
-        getTours({ search: searchTerm })
-      ]);
-
-      if (citiesRes.status === "fulfilled" && citiesRes.value?.data) {
-        setCitiesList(citiesRes.value.data);
-      }
-
-      if (toursRes.status === "fulfilled" && toursRes.value?.data?.tours) {
-        const fetched = toursRes.value.data.tours;
-        if (fetched.length > 0) {
-          // Format backend tour model to match UI requirements
-          const mapped = fetched.map(t => ({
-            id: `RT-${t.id}`,
-            rawId: t.id,
-            clientName: t.client?.fullName || "Client #" + t.clientId,
-            phone: t.client?.phone || "—",
-            email: t.client?.email || "—",
-            travelers: t.numberOfTravelers || 1,
-            startDate: t.travelDate ? new Date(t.travelDate).toISOString().split('T')[0] : "—",
-            endDate: "—",
-            type: t.packageName || "Custom Tour",
-            status: (t.tripStatus || "planning").toLowerCase(),
-            destinations: [{ cityId: t.client?.cityId ? `c-${t.client.cityId}` : "c-jaipur", nights: 3 }],
-            hotels: [t.destination || "Hotel Partner"]
-          }));
-          setToursList(mapped);
-        }
-      }
-    } catch (err) {
-      console.error("Error fetching tours from API:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchBackendData();
-  }, [searchTerm]);
 
   const filteredTours = useMemo(() => {
     return toursList.filter((tour) => {
@@ -114,19 +65,8 @@ function Tours({
     });
   }, [toursList, searchTerm, statusFilter]);
 
-  const handleStatusChange = async (tourId, newStatus) => {
+  const handleStatusChange = (tourId, newStatus) => {
     setToursList(prev => prev.map(t => t.id === tourId ? { ...t, status: newStatus } : t));
-    
-    // Call backend API if numeric rawId exists
-    const target = toursList.find(t => t.id === tourId);
-    if (target?.rawId) {
-      try {
-        await updateTripStatus(target.rawId, newStatus.toUpperCase());
-      } catch (err) {
-        console.error("Error updating trip status:", err);
-      }
-    }
-    
     onStatusChange(tourId, newStatus);
     toast.success("Tour status updated");
   };
@@ -134,19 +74,12 @@ function Tours({
   const handleDelete = async (tour) => {
     if (window.confirm(`Delete tour ${tour.id}?`)) {
       setToursList(prev => prev.filter(t => t.id !== tour.id));
-      if (tour.rawId) {
-        try {
-          await deleteTour(tour.rawId);
-        } catch (err) {
-          console.error("Delete tour error:", err);
-        }
-      }
       onDelete(tour.id);
       toast.success("Tour deleted successfully");
     }
   };
 
-  const handleCreateTour = async (newTourData) => {
+  const handleCreateTour = (newTourData) => {
     if (editingTour) {
       setToursList(prev => prev.map(t => t.id === editingTour.id ? newTourData : t));
       toast.success("Tour package updated successfully");
@@ -155,7 +88,6 @@ function Tours({
       toast.success("New tour package created successfully");
     }
     setEditingTour(null);
-    setIsWizardOpen(false);
   };
 
   const handleEditClick = (tour) => {

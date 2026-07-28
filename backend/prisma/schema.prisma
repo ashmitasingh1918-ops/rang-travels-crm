@@ -30,13 +30,6 @@ model User {
   fullName             String
   email                String           @unique
   password             String
-<<<<<<< HEAD
-  role                 Role     @default(STAFF)
-  isActive             Boolean  @default(true)
-  mustChangePassword   Boolean  @default(true)
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
-=======
   phone                String?          @unique
   role                 Role             @default(STAFF)
   isActive             Boolean          @default(true)
@@ -55,7 +48,6 @@ model GmailConnection {
   updatedAt    DateTime @updatedAt
 
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
->>>>>>> 055527d (Add Email Center Gmail integration and hotel voucher features)
 }
 
 model City {
@@ -67,7 +59,6 @@ model City {
   hotels    Hotel[]
 }
 
-
 model Client {
   id        Int       @id @default(autoincrement())
   fullName  String
@@ -78,29 +69,10 @@ model Client {
   cityId    Int
   city      City      @relation(fields: [cityId], references: [id])
   bookings  Booking[]
+  tours     Tour[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 }
-
-model Hotel {
-  id        Int      @id @default(autoincrement())
-  name      String   @unique
-  address   String?
-  phone     String?
-  email     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-<<<<<<< HEAD
-  cityId     Int
-  city       City     @relation(fields: [cityId], references: [id])
-  tours      Tour[]
-
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-}
-
 
 model Tour {
   id                Int           @id @default(autoincrement())
@@ -114,31 +86,25 @@ model Tour {
   paymentStatus     PaymentStatus @default(UNPAID)
   tripStatus        TripStatus    @default(UPCOMING)
   remarks           String?
-
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
 }
 
-
 model Hotel {
   id             Int      @id @default(autoincrement())
-
-  name           String
+  name           String   @unique
   category       String
   rating         Float?
-
   contactPerson  String
   email          String?  @unique
   phone          String?
-
   cityId         Int
   city           City     @relation(fields: [cityId], references: [id])
-
   isActive       Boolean  @default(true)
-
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
-=======
+}
+
 model Booking {
   id            Int       @id @default(autoincrement())
   fileNo        String    @unique
@@ -188,5 +154,4 @@ model Voucher {
 model TourCounter {
   financialYear String @id
   nextValue     Int    @default(1)
->>>>>>> 055527d (Add Email Center Gmail integration and hotel voucher features)
 }
