@@ -5,7 +5,7 @@ function SidebarItem({ item }) {
         <NavLink
             to={item.path}
             className={({ isActive }) =>
-                `nav-link d-flex align-items-center gap-3 px-3 py-2 rounded ${isActive ? "active bg-primary text-white" : "text-dark"
+                `nav-link d-flex align-items-center gap-5 px-3 py-2 rounded ${isActive ? "active bg-primary text-white" : "text-dark"
                 }`
             }
         >

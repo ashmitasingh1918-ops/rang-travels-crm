@@ -1,0 +1,21 @@
+.settings-card{
+    transition:all .3s ease;
+}
+
+.settings-card:hover{
+    transform:translateY(-8px);
+    box-shadow:0 18px 40px rgba(0,0,0,.08)!important;
+}
+
+.settings-card:hover .rounded-circle{
+    background:#2563eb!important;
+    color:#fff;
+}
+
+.settings-card:hover svg{
+    transition:.3s;
+}
+
+.settings-card:hover .rounded-circle svg{
+    color:#fff;
+}

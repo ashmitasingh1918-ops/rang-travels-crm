@@ -9,10 +9,17 @@ const authRoutes = require("./routes/authRoutes");
 const cityRoutes = require("./routes/cityRoutes");
 const clientRoutes = require("./routes/clientRoutes");
 const staffRoutes = require("./routes/staff.routes");
+<<<<<<< Updated upstream
 const gmailRoutes = require("./routes/gmailRoutes");
 const bookingRoutes = require("./routes/bookingRoutes");
 const voucherRoutes = require("./routes/voucherRoutes");
 
+=======
+const tourRoutes = require("./routes/tour.routes");
+const hotelRoutes = require("./routes/hotelRoutes");
+const dashboardRoutes = require("./routes/dashboardRoutes");
+const settingsRoutes = require("./routes/settings.routes");
+>>>>>>> Stashed changes
 const app = express();
 
 // Middleware
@@ -31,10 +38,17 @@ app.use("/api/auth", authRoutes);
 app.use("/api/v1/cities", cityRoutes);
 app.use("/api/v1/clients", clientRoutes);
 app.use("/api/v1/staff", staffRoutes);
+<<<<<<< Updated upstream
 app.use("/api/gmail", gmailRoutes);
 app.use("/api/v1/bookings", bookingRoutes);
 app.use("/api/v1/vouchers", voucherRoutes);
 
+=======
+app.use("/api/v1/tours", tourRoutes);
+app.use("/api/v1/hotels", hotelRoutes);
+app.use("/api/v1/dashboard", dashboardRoutes);
+app.use("/api/v1/settings", settingsRoutes);
+>>>>>>> Stashed changes
 // Home Route
 app.get("/", (req, res) => {
   res.send("Rang Travels CRM Backend is running...");

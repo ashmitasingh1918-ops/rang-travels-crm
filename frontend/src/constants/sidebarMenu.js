@@ -19,17 +19,12 @@ export const sidebarMenu = [
     },
     {
         id: 4,
-        title: "Agents",
-        path: "/agents",
-        icon: "bi bi-person-badge",
-    },
-    {
-        id: 5,
         title: "Hotels",
         path: "/hotels",
         icon: "bi bi-building",
     },
     {
+<<<<<<< Updated upstream
         id: 11,
         title: "Bookings",
         path: "/bookings",
@@ -37,30 +32,28 @@ export const sidebarMenu = [
     },
     {
         id: 6,
+=======
+        id: 5,
+>>>>>>> Stashed changes
         title: "Cities",
         path: "/cities",
         icon: "bi bi-geo-alt",
     },
     {
-        id: 7,
+        id: 6,
         title: "Email Center",
         path: "/email-center",
         icon: "bi bi-envelope",
     },
     {
-        id: 8,
+        id: 7,
         title: "Staff Management",
         path: "/staff-management",
         icon: "bi bi-shield",
     },
+    
     {
-        id: 9,
-        title: "Reports",
-        path: "/reports",
-        icon: "bi bi-bar-chart",
-    },
-    {
-        id: 10,
+        id: 8,
         title: "Settings",
         path: "/settings",
         icon: "bi bi-gear",
