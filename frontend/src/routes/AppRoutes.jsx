@@ -11,6 +11,7 @@ import EmailCenter from "../pages/EmailCenter";
 import StaffManagement from "../pages/StaffManagement";
 import Reports from "../pages/Reports";
 import Settings from "../pages/Settings";
+import Bookings from "../pages/Bookings";
 
 function AppRoutes() {
   return (
@@ -25,6 +26,7 @@ function AppRoutes() {
       <Route path="/staff-management" element={<StaffManagement />} />
       <Route path="/reports" element={<Reports />} />
       <Route path="/settings" element={<Settings />} />
+      <Route path="/bookings" element={<Bookings />} />
 
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>

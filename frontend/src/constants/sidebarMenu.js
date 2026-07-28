@@ -30,6 +30,12 @@ export const sidebarMenu = [
         icon: "bi bi-building",
     },
     {
+        id: 11,
+        title: "Bookings",
+        path: "/bookings",
+        icon: "bi bi-journal-check",
+    },
+    {
         id: 6,
         title: "Cities",
         path: "/cities",

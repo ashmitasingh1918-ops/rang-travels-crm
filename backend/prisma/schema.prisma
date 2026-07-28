@@ -26,16 +26,36 @@ enum PaymentStatus {
 }
 
 model User {
-  id                   Int      @id @default(autoincrement())
+  id                   Int              @id @default(autoincrement())
   fullName             String
-  email                String   @unique
-  phone              String?  @unique 
+  email                String           @unique
   password             String
+<<<<<<< HEAD
   role                 Role     @default(STAFF)
   isActive             Boolean  @default(true)
   mustChangePassword   Boolean  @default(true)
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
+=======
+  phone                String?          @unique
+  role                 Role             @default(STAFF)
+  isActive             Boolean          @default(true)
+  mustChangePassword   Boolean          @default(true)
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  gmailConnection      GmailConnection?
+}
+
+model GmailConnection {
+  id           Int      @id @default(autoincrement())
+  userId       Int      @unique
+  email        String
+  refreshToken String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+>>>>>>> 055527d (Add Email Center Gmail integration and hotel voucher features)
 }
 
 model City {
@@ -43,21 +63,36 @@ model City {
   name      String
   state     String
   code      String   @unique
-
   clients   Client[]
   hotels    Hotel[]
 }
 
 
 model Client {
-  id         Int      @id @default(autoincrement())
-  fullName   String
-  phone      String   @unique
-  email      String?  @unique
-  address    String?
+  id        Int       @id @default(autoincrement())
+  fullName  String
+  phone     String    @unique
+  email     String?   @unique
+  address   String?
+  isActive  Boolean   @default(true)
+  cityId    Int
+  city      City      @relation(fields: [cityId], references: [id])
+  bookings  Booking[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
 
-  isActive   Boolean  @default(true)
+model Hotel {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  address   String?
+  phone     String?
+  email     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
 
+<<<<<<< HEAD
   cityId     Int
   city       City     @relation(fields: [cityId], references: [id])
   tours      Tour[]
@@ -103,4 +138,55 @@ model Hotel {
 
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+=======
+model Booking {
+  id            Int       @id @default(autoincrement())
+  fileNo        String    @unique
+  clientId      Int
+  client        Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  startDate     DateTime
+  endDate       DateTime
+  travelers     Int       @default(1)
+  status        String    @default("planning") // "planning", "emails_sent", "quotation_received", "hotel_confirmed", "completed", "cancelled"
+  hotelName     String?
+  hotelAddress  String?
+  hotelPhone    String?
+  hotelEmail    String?
+  roomType      String?
+  numberOfRooms String?
+  mealPlan      String?
+  nationality   String?
+  vouchers      Voucher[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Voucher {
+  id            Int       @id @default(autoincrement())
+  bookingId     Int
+  booking       Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  fileNo        String
+  reservationNo String?
+  hotelName     String
+  hotelAddress  String?
+  hotelPhone    String?
+  guestName     String
+  checkInDate   DateTime
+  checkOutDate  DateTime
+  roomType      String
+  numberOfRooms String    @default("1")
+  mealPlan      String
+  nationality   String
+  status        String    @default("DRAFT") // "DRAFT", "GENERATED", "SENT"
+  pdfPath       String?
+  createdBy     String?
+  sentAt        DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model TourCounter {
+  financialYear String @id
+  nextValue     Int    @default(1)
+>>>>>>> 055527d (Add Email Center Gmail integration and hotel voucher features)
 }

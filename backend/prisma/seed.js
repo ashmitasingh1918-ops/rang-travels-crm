@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt");
 const prisma = new PrismaClient();
 
 async function main() {
+<<<<<<< HEAD
   console.log("Cleaning database...");
   
   // Clear relational tables in dependency order
@@ -291,3 +292,166 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
+=======
+    // 1. Seed Admin
+    const adminEmail = process.env.ADMIN_EMAIL || "admin@rangtravels.com";
+    const adminName = process.env.ADMIN_NAME || "System Admin";
+
+    let admin = await prisma.user.findUnique({
+        where: { email: adminEmail }
+    });
+
+    const hashedPassword = await bcrypt.hash(
+        process.env.ADMIN_PASSWORD || "Admin@123",
+        10
+    );
+
+    if (admin) {
+        console.log("Admin already exists. Updating credentials...");
+        admin = await prisma.user.update({
+            where: { email: adminEmail },
+            data: {
+                fullName: adminName,
+                password: hashedPassword
+            }
+        });
+    } else {
+        admin = await prisma.user.create({
+            data: {
+                fullName: adminName,
+                email: adminEmail,
+                password: hashedPassword,
+                role: "ADMIN"
+            }
+        });
+        console.log("Admin created successfully!");
+    }
+
+    // 2. Seed Cities
+    console.log("Seeding Cities...");
+    const delhi = await prisma.city.upsert({
+        where: { code: "DEL" },
+        update: {},
+        create: { name: "New Delhi", state: "Delhi", code: "DEL" }
+    });
+
+    const jaipur = await prisma.city.upsert({
+        where: { code: "JAI" },
+        update: {},
+        create: { name: "Jaipur", state: "Rajasthan", code: "JAI" }
+    });
+
+    const udaipur = await prisma.city.upsert({
+        where: { code: "UDR" },
+        update: {},
+        create: { name: "Udaipur", state: "Rajasthan", code: "UDR" }
+    });
+
+    // 3. Seed Client
+    console.log("Seeding Client...");
+    const client = await prisma.client.upsert({
+        where: { phone: "+39 333 123456" },
+        update: {},
+        create: {
+            fullName: "MICHELA UCCELLI AND PIERPAOLO PULLINI",
+            phone: "+39 333 123456",
+            email: "michela.uccelli@gmail.com",
+            address: "Milan, Italy",
+            cityId: delhi.id
+        }
+    });
+
+    const localClient = await prisma.client.upsert({
+        where: { phone: "9876543210" },
+        update: {},
+        create: {
+            fullName: "Rahul Sharma",
+            phone: "9876543210",
+            email: "rahul@gmail.com",
+            address: "Malviya Nagar, Jaipur",
+            cityId: jaipur.id
+        }
+    });
+
+    // 4. Seed Bookings
+    console.log("Seeding Bookings...");
+
+    // Confirmed booking matching user reference
+    await prisma.booking.upsert({
+        where: { fileNo: "RT|MS|206|26-27" },
+        update: {},
+        create: {
+            fileNo: "RT|MS|206|26-27",
+            status: "hotel_confirmed",
+            clientId: client.id,
+            startDate: new Date("2026-07-30T00:00:00Z"),
+            endDate: new Date("2026-07-31T00:00:00Z"),
+            travelers: 2,
+            hotelName: "DELHI-JAYPEE VASANT CONTINENTAL",
+            hotelAddress: "VASANT VIHAR, NEW DELHI - 110057, INDIA",
+            hotelPhone: "+91-11-2614 8800, +91-11-4600 8800",
+            hotelEmail: "reservations@jaypeevasantcontinental.com",
+            roomType: "DELUXE ROOM",
+            numberOfRooms: "1 ROOM",
+            mealPlan: "ROOM WITH BREAKFAST AND DINNER",
+            nationality: "ITALIAN"
+        }
+    });
+
+    // Confirmed booking for another client
+    await prisma.booking.upsert({
+        where: { fileNo: "RT-2404" },
+        update: {},
+        create: {
+            fileNo: "RT-2404",
+            status: "hotel_confirmed",
+            clientId: localClient.id,
+            startDate: new Date("2026-09-01T00:00:00Z"),
+            endDate: new Date("2026-09-05T00:00:00Z"),
+            travelers: 6,
+            hotelName: "Taj Lake Palace",
+            hotelAddress: "Lake Pichola, Udaipur, Rajasthan 313001",
+            hotelPhone: "+91 294 242 8800",
+            hotelEmail: "res.lakepalace@tajhotels.com",
+            roomType: "Luxury Suite",
+            numberOfRooms: "3 Rooms",
+            mealPlan: "ROOM WITH BREAKFAST",
+            nationality: "INDIAN"
+        }
+    });
+
+    // A planning booking
+    await prisma.booking.upsert({
+        where: { fileNo: "RT-2401" },
+        update: {},
+        create: {
+            fileNo: "RT-2401",
+            status: "planning",
+            clientId: localClient.id,
+            startDate: new Date("2026-10-12T00:00:00Z"),
+            endDate: new Date("2026-10-18T00:00:00Z"),
+            travelers: 4,
+            hotelName: "Taj Rambagh Palace",
+            hotelAddress: "Bhawani Singh Rd, Rambagh, Jaipur, Rajasthan 302005",
+            hotelPhone: "+91 141 221 1919",
+            hotelEmail: "reservations@tajrambagh.com",
+            roomType: "Royal Suite",
+            numberOfRooms: "2 Rooms",
+            mealPlan: "Room Only",
+            nationality: "INDIAN"
+        }
+    });
+
+    console.log("Database seeded successfully with cities, clients, and bookings!");
+}
+
+main()
+    .catch((e) => {
+        console.error(e);
+        process.exit(1);
+    })
+    .finally(async () => {
+        await prisma.$disconnect();
+    });
+
+>>>>>>> 055527d (Add Email Center Gmail integration and hotel voucher features)
