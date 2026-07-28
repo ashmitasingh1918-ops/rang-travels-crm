@@ -9,6 +9,7 @@ const authRoutes = require("./routes/authRoutes");
 const cityRoutes = require("./routes/cityRoutes");
 const clientRoutes = require("./routes/clientRoutes");
 const staffRoutes = require("./routes/staff.routes");
+const tourRoutes = require("./routes/tour.routes");
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/v1/cities", cityRoutes);
 app.use("/api/v1/clients", clientRoutes);
 app.use("/api/v1/staff", staffRoutes);
+app.use("/api/v1/tours", tourRoutes);
 
 // Home Route
 app.get("/", (req, res) => {
