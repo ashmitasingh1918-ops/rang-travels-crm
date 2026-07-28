@@ -45,7 +45,9 @@ model City {
   code      String   @unique
 
   clients   Client[]
+  hotels    Hotel[]
 }
+
 
 model Client {
   id         Int      @id @default(autoincrement())
@@ -64,6 +66,7 @@ model Client {
   updatedAt  DateTime @updatedAt
 }
 
+
 model Tour {
   id                Int           @id @default(autoincrement())
   clientId          Int
@@ -79,4 +82,25 @@ model Tour {
 
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
+}
+
+
+model Hotel {
+  id             Int      @id @default(autoincrement())
+
+  name           String
+  category       String
+  rating         Float?
+
+  contactPerson  String
+  email          String?  @unique
+  phone          String?
+
+  cityId         Int
+  city           City     @relation(fields: [cityId], references: [id])
+
+  isActive       Boolean  @default(true)
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }

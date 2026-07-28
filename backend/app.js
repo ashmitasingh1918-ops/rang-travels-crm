@@ -10,7 +10,8 @@ const cityRoutes = require("./routes/cityRoutes");
 const clientRoutes = require("./routes/clientRoutes");
 const staffRoutes = require("./routes/staff.routes");
 const tourRoutes = require("./routes/tour.routes");
-
+const hotelRoutes = require("./routes/hotelRoutes");
+const dashboardRoutes = require("./routes/dashboardRoutes");
 const app = express();
 
 // Middleware
@@ -30,7 +31,8 @@ app.use("/api/v1/cities", cityRoutes);
 app.use("/api/v1/clients", clientRoutes);
 app.use("/api/v1/staff", staffRoutes);
 app.use("/api/v1/tours", tourRoutes);
-
+app.use("/api/v1/hotels", hotelRoutes);
+app.use("/api/v1/dashboard", dashboardRoutes);
 // Home Route
 app.get("/", (req, res) => {
   res.send("Rang Travels CRM Backend is running...");
