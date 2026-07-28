@@ -1,7 +1,9 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Plus, Search, Calendar, Users, MapPin, Mail, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import TourWizard from "../features/tour-wizard/TourWizard";
+import { getTours, createTour, updateTour, updateTripStatus, deleteTour } from "../services/tourService";
+import { getCities } from "../services/cityService";
 
 // Reusable micro-component for card details
 function InfoRow({ icon: Icon, text }) {
@@ -14,10 +16,13 @@ function InfoRow({ icon: Icon, text }) {
 }
 
 const getStatusConfig = (status) => {
-  switch (status) {
+  const normalized = (status || "").toLowerCase();
+  switch (normalized) {
     case "planning":
+    case "upcoming":
       return { label: "Planning", bg: "bg-amber-50", text: "text-amber-700", dot: "bg-amber-500" };
     case "emails_sent":
+    case "ongoing":
       return { label: "Emails Sent", bg: "bg-violet-50", text: "text-violet-700", dot: "bg-violet-500" };
     case "quotation_received":
       return { label: "Quotation Received", bg: "bg-sky-50", text: "text-sky-700", dot: "bg-sky-500" };
@@ -28,13 +33,13 @@ const getStatusConfig = (status) => {
     case "cancelled":
       return { label: "Cancelled", bg: "bg-rose-50", text: "text-rose-700", dot: "bg-rose-500" };
     default:
-      return { label: "Planning", bg: "bg-amber-50", text: "text-amber-700", dot: "bg-amber-500" };
+      return { label: status || "Planning", bg: "bg-amber-50", text: "text-amber-700", dot: "bg-amber-500" };
   }
 };
 
 function Tours({
-  tours: initialTours = DEMO_TOURS,
-  cities = DEMO_CITIES,
+  tours: initialTours = null,
+  cities: propCities = null,
   cityImageMap = DEMO_IMAGE_MAP,
   onNewTour = null,
   onEdit = () => {},
@@ -42,41 +47,106 @@ function Tours({
   onSendEmail = () => {},
   onStatusChange = () => {}
 }) {
-  const [toursList, setToursList] = useState(initialTours);
+  const [toursList, setToursList] = useState(initialTours || DEMO_TOURS);
+  const [citiesList, setCitiesList] = useState(propCities || DEMO_CITIES);
+  const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [editingTour, setEditingTour] = useState(null);
 
+  // Fetch Cities & Tours from Backend API
+  const fetchBackendData = async () => {
+    try {
+      setLoading(true);
+      const [citiesRes, toursRes] = await Promise.allSettled([
+        getCities(),
+        getTours({ search: searchTerm })
+      ]);
+
+      if (citiesRes.status === "fulfilled" && citiesRes.value?.data) {
+        setCitiesList(citiesRes.value.data);
+      }
+
+      if (toursRes.status === "fulfilled" && toursRes.value?.data?.tours) {
+        const fetched = toursRes.value.data.tours;
+        if (fetched.length > 0) {
+          // Format backend tour model to match UI requirements
+          const mapped = fetched.map(t => ({
+            id: `RT-${t.id}`,
+            rawId: t.id,
+            clientName: t.client?.fullName || "Client #" + t.clientId,
+            phone: t.client?.phone || "—",
+            email: t.client?.email || "—",
+            travelers: t.numberOfTravelers || 1,
+            startDate: t.travelDate ? new Date(t.travelDate).toISOString().split('T')[0] : "—",
+            endDate: "—",
+            type: t.packageName || "Custom Tour",
+            status: (t.tripStatus || "planning").toLowerCase(),
+            destinations: [{ cityId: t.client?.cityId ? `c-${t.client.cityId}` : "c-jaipur", nights: 3 }],
+            hotels: [t.destination || "Hotel Partner"]
+          }));
+          setToursList(mapped);
+        }
+      }
+    } catch (err) {
+      console.error("Error fetching tours from API:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchBackendData();
+  }, [searchTerm]);
+
   const filteredTours = useMemo(() => {
     return toursList.filter((tour) => {
       const matchesSearch =
-        tour.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        tour.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (tour.clientName || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        String(tour.id || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
         (tour.phone && tour.phone.includes(searchTerm)) ||
         (tour.email && tour.email.toLowerCase().includes(searchTerm.toLowerCase()));
 
-      const matchesStatus = statusFilter === "all" || tour.status === statusFilter;
+      const matchesStatus = statusFilter === "all" || (tour.status || "").toLowerCase() === statusFilter.toLowerCase();
 
       return matchesSearch && matchesStatus;
     });
   }, [toursList, searchTerm, statusFilter]);
 
-  const handleStatusChange = (tourId, newStatus) => {
+  const handleStatusChange = async (tourId, newStatus) => {
     setToursList(prev => prev.map(t => t.id === tourId ? { ...t, status: newStatus } : t));
+    
+    // Call backend API if numeric rawId exists
+    const target = toursList.find(t => t.id === tourId);
+    if (target?.rawId) {
+      try {
+        await updateTripStatus(target.rawId, newStatus.toUpperCase());
+      } catch (err) {
+        console.error("Error updating trip status:", err);
+      }
+    }
+    
     onStatusChange(tourId, newStatus);
     toast.success("Tour status updated");
   };
 
-  const handleDelete = (tour) => {
+  const handleDelete = async (tour) => {
     if (window.confirm(`Delete tour ${tour.id}?`)) {
       setToursList(prev => prev.filter(t => t.id !== tour.id));
+      if (tour.rawId) {
+        try {
+          await deleteTour(tour.rawId);
+        } catch (err) {
+          console.error("Delete tour error:", err);
+        }
+      }
       onDelete(tour.id);
       toast.success("Tour deleted successfully");
     }
   };
 
-  const handleCreateTour = (newTourData) => {
+  const handleCreateTour = async (newTourData) => {
     if (editingTour) {
       setToursList(prev => prev.map(t => t.id === editingTour.id ? newTourData : t));
       toast.success("Tour package updated successfully");
@@ -85,6 +155,7 @@ function Tours({
       toast.success("New tour package created successfully");
     }
     setEditingTour(null);
+    setIsWizardOpen(false);
   };
 
   const handleEditClick = (tour) => {
@@ -104,7 +175,7 @@ function Tours({
   return (
     <div className="p-6 md:p-8 space-y-6 bg-tours-light min-vh-100">
       {/* Top Row Header */}
-      <div className="d-flex justify-content-between align-items-center">
+      <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
           <h1 className="font-display text-3xl font-bold mb-1 text-dark">Tours</h1>
           <p className="text-secondary mb-0 fs-7">Manage every itinerary from planning to completion.</p>
@@ -120,7 +191,7 @@ function Tours({
       </div>
 
       {/* Toolbar card */}
-      <div className="card rounded-xl border-soft p-3 bg-white shadow-sm border-0">
+      <div className="card rounded-xl border-soft p-3 bg-white shadow-sm border-0 mb-4">
         <div className="row g-3 align-items-center">
           <div className="col-12 col-md-8 position-relative">
             <div className="input-group border rounded-lg overflow-hidden bg-light shadow-none">
@@ -156,8 +227,15 @@ function Tours({
         </div>
       </div>
 
-      {/* Tour card grid / Empty state */}
-      {filteredTours.length === 0 ? (
+      {/* Loading state */}
+      {loading ? (
+        <div className="text-center py-5 bg-white border rounded-2xl shadow-sm">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <p className="mt-2 text-secondary mb-0">Loading tour itineraries...</p>
+        </div>
+      ) : filteredTours.length === 0 ? (
         <div className="text-center py-5 border-dashed border-2 bg-white rounded-2xl d-flex flex-column align-items-center justify-content-center border-soft" style={{ borderStyle: "dashed" }}>
           <p className="text-secondary my-4 font-display fs-6">No tours match your filters.</p>
         </div>
@@ -165,11 +243,12 @@ function Tours({
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {filteredTours.map((tour) => {
             const statusConfig = getStatusConfig(tour.status);
-            const imageSrc = cityImageMap[tour.destinations[0]?.cityId] || Object.values(cityImageMap)[0];
+            const firstCityId = tour.destinations[0]?.cityId;
+            const imageSrc = cityImageMap[firstCityId] || Object.values(cityImageMap)[0];
             const destIdsText = tour.destinations
-              .map((dest) => cities.find((c) => c.id === dest.cityId)?.name || "")
+              .map((dest) => citiesList.find((c) => c.id === dest.cityId || `c-${c.id}` === dest.cityId)?.name || "")
               .filter(Boolean)
-              .join(", ") || "—";
+              .join(", ") || "Main Destination";
 
             return (
               <div
@@ -212,7 +291,7 @@ function Tours({
                 {/* Card body content */}
                 <div className="p-4 space-y-3">
                   <div className="grid grid-cols-2 gap-2 text-xs text-slate-600">
-                    <InfoRow icon={Calendar} text={`${tour.startDate || "—"} to ${tour.endDate || "—"}`} />
+                    <InfoRow icon={Calendar} text={`${tour.startDate || "—"}`} />
                     <InfoRow icon={Users} text={`${tour.travelers || 0} travelers`} />
                     <InfoRow icon={MapPin} text={destIdsText} />
                     <InfoRow icon={Mail} text={tour.email} />
@@ -273,7 +352,7 @@ function Tours({
         onOpenChange={setIsWizardOpen}
         initialTour={editingTour}
         onSubmit={handleCreateTour}
-        cities={cities}
+        cities={citiesList}
         hotels={DEMO_HOTELS}
         agents={DEMO_AGENTS}
         tours={toursList}
@@ -282,7 +361,7 @@ function Tours({
   );
 }
 
-// ----------------- DEMO DATA -----------------
+// ----------------- DEMO FALLBACK DATA -----------------
 const DEMO_CITIES = [
   { id: "c-jaipur", name: "Jaipur", code: "JAI" },
   { id: "c-goa", name: "Goa", code: "GOI" },
