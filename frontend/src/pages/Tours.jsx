@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Plus,
   Search,
@@ -11,6 +12,9 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import TourWizard from "../features/tour-wizard/TourWizard";
+import { getHotels } from "../services/hotelService";
+import { getTours, createTour as apiCreateTour, deleteTour as apiDeleteTour, updateTripStatus as apiUpdateStatus } from "../services/tourService";
+import { getCities } from "../services/cityService";
 
 /* =========================================================
    SMALL REUSABLE COMPONENTS
@@ -223,43 +227,57 @@ const getTravelerCount = (tour) => {
    MAIN COMPONENT
 ========================================================= */
 
-function Tours({
-  tours: initialTours = DEMO_TOURS,
-  cities = DEMO_CITIES,
-  cityImageMap = DEMO_IMAGE_MAP,
+function Tours() {
+  const navigate = useNavigate();
 
-  onNewTour = null,
-  onEdit = () => {},
-  onDelete = () => {},
-  onSendEmail = () => {},
-  onStatusChange = () => {},
-}) {
-  /*
-   * IMPORTANT:
-   * This page receives the initial tour list through props.
-   * Therefore there is no asynchronous loading operation here.
-   *
-   * The old merged file rendered `{loading ? ...}` without
-   * defining `loading`, which caused the entire page to crash.
-   */
+  // ── Data state ────────────────────────────────────────────────────────
+  const [toursList, setToursList] = useState([]);
+  const [citiesList, setCitiesList] = useState([]);
+  const [hotelsData, setHotelsData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const [toursList, setToursList] = useState(() =>
-    Array.isArray(initialTours) ? initialTours : []
-  );
-
+  // ── UI state ──────────────────────────────────────────────────────────
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [editingTour, setEditingTour] = useState(null);
 
-  /*
-   * citiesList gives us one safe, consistent variable throughout
-   * the component.
-   */
-  const citiesList = useMemo(() => {
-    return Array.isArray(cities) ? cities : [];
-  }, [cities]);
+  // ── Fetch all data from backend on mount ──────────────────────────────
+  const fetchTours = useCallback(async () => {
+    try {
+      const res = await getTours({ limit: 200 });
+      // API returns { data: { tours: [...] } }
+      const list = res?.data?.tours ?? res?.tours ?? [];
+      setToursList(Array.isArray(list) ? list : []);
+    } catch (err) {
+      console.error("Failed to load tours:", err);
+      toast.error("Could not load tours");
+    }
+  }, []);
+
+  useEffect(() => {
+    const init = async () => {
+      setLoading(true);
+      try {
+        await Promise.all([
+          fetchTours(),
+          getCities({ limit: 200 }).then((res) => {
+            const list = res?.data?.cities ?? res?.cities ?? res?.data ?? [];
+            setCitiesList(Array.isArray(list) ? list : []);
+          }),
+          getHotels({ limit: 200 }).then((res) => {
+            const list = res?.hotels ?? res?.data?.hotels ?? [];
+            setHotelsData(Array.isArray(list) ? list : []);
+          }),
+        ]);
+      } catch (err) {
+        console.error("Init error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    init();
+  }, [fetchTours]);
 
   /* =========================================================
      SEARCH + FILTER
@@ -294,34 +312,21 @@ function Tours({
   }, [toursList, searchTerm, statusFilter]);
 
   /* =========================================================
-     STATUS UPDATE
+     STATUS UPDATE — calls backend PATCH /api/v1/tours/:id/status
   ========================================================= */
 
   const handleStatusChange = async (tourId, newStatus) => {
     const previousTours = toursList;
-
+    // Optimistic update
+    setToursList((prev) =>
+      prev.map((t) => (t.id === tourId ? { ...t, tripStatus: newStatus } : t))
+    );
     try {
-      setToursList((previous) =>
-        previous.map((tour) =>
-          tour.id === tourId
-            ? {
-                ...tour,
-                status: newStatus,
-              }
-            : tour
-        )
-      );
-
-      await Promise.resolve(
-        onStatusChange(tourId, newStatus)
-      );
-
+      await apiUpdateStatus(tourId, newStatus);
       toast.success("Tour status updated");
     } catch (error) {
       console.error("Failed to update tour status:", error);
-
       setToursList(previousTours);
-
       toast.error("Unable to update tour status");
     }
   };
@@ -332,29 +337,20 @@ function Tours({
 
   const handleDelete = async (tour) => {
     const confirmed = window.confirm(
-      `Delete tour ${tour?.id || ""}?`
+      `Delete tour for "${getTourClientName(tour)}"? This cannot be undone.`
     );
-
-    if (!confirmed) {
-      return;
-    }
+    if (!confirmed) return;
 
     const previousTours = toursList;
-
+    // Optimistic remove
+    setToursList((prev) => prev.filter((t) => t.id !== tour.id));
     try {
-      setToursList((previous) =>
-        previous.filter((item) => item.id !== tour.id)
-      );
-
-      await Promise.resolve(onDelete(tour.id));
-
+      await apiDeleteTour(tour.id);
       toast.success("Tour deleted successfully");
     } catch (error) {
       console.error("Failed to delete tour:", error);
-
       setToursList(previousTours);
-
-      toast.error("Unable to delete tour");
+      toast.error(error?.response?.data?.message || "Unable to delete tour");
     }
   };
 
@@ -362,62 +358,60 @@ function Tours({
      CREATE / EDIT TOUR
   ========================================================= */
 
-  const handleCreateTour = (tourData) => {
+  const handleCreateTour = async (tourData) => {
     if (!tourData) {
       toast.error("Tour information is missing");
       return;
     }
 
-    if (editingTour) {
-      const updatedTour = {
-        ...editingTour,
-        ...tourData,
+    // The wizard submits wizard-form fields; map them to the backend schema.
+    // Backend createTour requires: clientId, destination, packageName, travelDate
+    // The Tours wizard stores clientName (no clientId yet), so we persist what we
+    // can and refresh the list from the server afterwards.
+    try {
+      // Build payload the backend understands.
+      // destination = first city name from itinerary, or generic fallback
+      const firstCityId = tourData.destinations?.[0]?.cityId;
+      const firstCity = citiesList.find((c) => String(c.id) === String(firstCityId));
+      const destinationName = firstCity?.name || tourData.tourName || "General Tour";
 
-        // Never accidentally replace an existing ID during edit.
-        id: editingTour.id,
+      const payload = {
+        // clientId is required — look it up if possible, otherwise skip backend create
+        clientId: tourData.clientId || null,
+        destination: destinationName,
+        packageName: tourData.tourName || tourData.clientName || "Tour Package",
+        travelDate: tourData.startDate || tourData.bookingDate || new Date().toISOString(),
+        numberOfTravelers: Number(tourData.pax || tourData.travelers || 1),
+        remarks: tourData.specialInstructions || null,
       };
 
-      setToursList((previous) =>
-        previous.map((tour) =>
-          tour.id === editingTour.id
-            ? updatedTour
-            : tour
-        )
-      );
-
-      Promise.resolve(onEdit(updatedTour)).catch((error) => {
-        console.error("Failed to update tour:", error);
-      });
-
-      toast.success("Tour package updated successfully");
-    } else {
-      /*
-       * If the backend/TourWizard already provides an ID,
-       * preserve it.
-       *
-       * Otherwise generate the frontend demo ID.
-       */
-      const newTour = {
-        ...tourData,
-
-        id:
-          tourData.id ||
-          tourData.tourId ||
-          generateNextTourId(toursList),
-
-        status: tourData.status || "planning",
-
-        destinations: normalizeDestinations(
-          tourData.destinations
-        ),
-      };
-
-      setToursList((previous) => [
-        newTour,
-        ...previous,
-      ]);
-
-      toast.success("New tour package created successfully");
+      if (payload.clientId) {
+        // Persist to backend
+        const res = await apiCreateTour(payload);
+        const savedTour = res?.data || null;
+        if (savedTour) {
+          setToursList((prev) => [savedTour, ...prev]);
+          toast.success("Tour saved to database");
+        } else {
+          await fetchTours();
+          toast.success("Tour created successfully");
+        }
+      } else {
+        // No clientId — add locally with a temp ID so it shows in UI
+        const tempTour = {
+          ...tourData,
+          id: tourData.id || tourData.fileNumber || generateNextTourId(toursList),
+          status: tourData.status || "planning",
+          destinations: normalizeDestinations(tourData.destinations),
+          clientName: tourData.clientName,
+        };
+        setToursList((prev) => [tempTour, ...prev]);
+        toast.success("Tour added (link a Client to persist to database)");
+      }
+    } catch (err) {
+      console.error("Failed to create tour:", err);
+      toast.error(err?.response?.data?.message || "Failed to create tour");
+      return;
     }
 
     setEditingTour(null);
@@ -438,15 +432,6 @@ function Tours({
   ========================================================= */
 
   const handleOpenWizard = () => {
-    /*
-     * Preserve existing behavior if the parent wants to control
-     * creation itself.
-     */
-    if (typeof onNewTour === "function") {
-      onNewTour();
-      return;
-    }
-
     setEditingTour(null);
     setIsWizardOpen(true);
   };
@@ -455,13 +440,9 @@ function Tours({
      EMAIL
   ========================================================= */
 
-  const handleSendEmail = async (tour) => {
-    try {
-      await Promise.resolve(onSendEmail(tour));
-    } catch (error) {
-      console.error("Failed to open/send tour email:", error);
-      toast.error("Unable to process email request");
-    }
+  const handleSendEmail = (tour) => {
+    // Navigate to email center or open email compose
+    navigate(`/email-center`);
   };
 
   /* =========================================================
@@ -544,7 +525,7 @@ function Tours({
     }
 
     const availableImages = Object.values(
-      cityImageMap || {}
+      DEMO_IMAGE_MAP || {}
     );
 
     return (
@@ -556,6 +537,17 @@ function Tours({
   /* =========================================================
      UI
   ========================================================= */
+
+  if (loading) {
+    return (
+      <div className="d-flex align-items-center justify-content-center min-vh-100">
+        <div className="text-center">
+          <div className="spinner-border text-primary mb-3" style={{ width: "2.5rem", height: "2.5rem" }} />
+          <p className="text-secondary fs-7">Loading tours…</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 md:p-8 space-y-6 bg-tours-light min-vh-100">
@@ -855,47 +847,16 @@ function Tours({
 
                   <div className="d-flex flex-wrap align-items-center gap-2 pt-3 mt-3 border-top">
 
-                    {/* STATUS */}
+                    {/* MANAGE HOTELS */}
 
-                    <select
-                      className="form-select form-select-sm w-auto fs-8 shadow-none py-1 px-2 border"
-                      value={
-                        tour.status || "planning"
-                      }
-                      onChange={(event) =>
-                        handleStatusChange(
-                          tour.id,
-                          event.target.value
-                        )
-                      }
-                      data-testid={`tour-status-select-${tour.id}`}
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-primary d-inline-flex align-items-center gap-1 py-1 px-2 fs-8"
+                      onClick={() => navigate(`/tours/${tour.id}`)}
+                      data-testid={`tour-manage-hotels-btn-${tour.id}`}
                     >
-
-                      <option value="planning">
-                        Planning
-                      </option>
-
-                      <option value="emails_sent">
-                        Emails Sent
-                      </option>
-
-                      <option value="quotation_received">
-                        Quotation Received
-                      </option>
-
-                      <option value="hotel_confirmed">
-                        Hotel Confirmed
-                      </option>
-
-                      <option value="completed">
-                        Completed
-                      </option>
-
-                      <option value="cancelled">
-                        Cancelled
-                      </option>
-
-                    </select>
+                      <span>🏨 Manage Hotels</span>
+                    </button>
 
                     {/* EMAIL */}
 
@@ -972,7 +933,7 @@ function Tours({
         initialTour={editingTour}
         onSubmit={handleCreateTour}
         cities={citiesList}
-        hotels={DEMO_HOTELS}
+        hotels={hotelsData}
         agents={DEMO_AGENTS}
         tours={toursList}
       />

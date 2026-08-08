@@ -3,11 +3,13 @@
  * HTML formatting and templating mail composer modal.
  */
 import React, { useState, useEffect, useRef } from "react";
-import { X, Mail, Eye, EyeOff, Bold, Italic, Underline, List, ListOrdered, Paperclip, Send } from "lucide-react";
+import { X, Mail, Eye, EyeOff, Bold, Italic, Underline, List, ListOrdered, Paperclip, Send, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { substituteTemplate, DEFAULT_EMAIL_TEMPLATE } from "./emailTemplate";
+import { sendMail } from "../../services/gmailService";
 
 export default function EmailComposeModal({ open, onOpenChange, tour, hotelRequest, hotels = [], onSend }) {
+  const [isSending, setIsSending] = useState(false);
   const [toChips, setToChips] = useState([]);
   const [toInput, setToInput] = useState("");
   const [subject, setSubject] = useState("");
@@ -120,26 +122,59 @@ export default function EmailComposeModal({ open, onOpenChange, tour, hotelReque
     setAttachments(attachments.filter((_, i) => i !== idx));
   };
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (toChips.length === 0) {
       toast.error("Please specify at least one recipient in 'To' field.");
       return;
     }
     const htmlBody = editorRef.current ? editorRef.current.innerHTML : "";
-    
-    // Call trigger
-    if (onSend) {
-      onSend({
-        tour_id: tour?.fileNumber || tour?.file_no,
-        to: toChips,
-        subject,
-        body: htmlBody,
-        attachments: attachments.map(a => a.name)
-      });
+    if (!htmlBody.trim()) {
+      toast.error("Email body cannot be empty.");
+      return;
     }
 
-    toast.success(`Booking request email successfully dispatched to ${hotelRequest.hotel}!`);
-    onOpenChange(false);
+    setIsSending(true);
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const recipient of toChips) {
+      try {
+        await sendMail({ to: recipient, subject, message: htmlBody });
+        successCount++;
+      } catch (err) {
+        console.error(`Failed to send to ${recipient}:`, err);
+        const errMsg = err?.response?.data?.message || err.message || "Unknown error";
+        // Check for Gmail not connected
+        if (err?.response?.data?.code === "GMAIL_NOT_CONNECTED" || errMsg.includes("GMAIL_NOT_CONNECTED")) {
+          toast.error("Gmail not connected. Please connect your Gmail in Email Settings first.");
+          setIsSending(false);
+          return;
+        }
+        toast.error(`Failed to send to ${recipient}: ${errMsg}`);
+        failCount++;
+      }
+    }
+
+    setIsSending(false);
+
+    if (successCount > 0) {
+      // Notify parent (updates workflow status, etc.)
+      if (onSend) {
+        onSend({
+          tour_id: tour?.fileNumber || tour?.file_no,
+          to: toChips,
+          subject,
+          body: htmlBody,
+          attachments: attachments.map(a => a.name)
+        });
+      }
+      toast.success(
+        failCount > 0
+          ? `Sent to ${successCount} recipient(s). ${failCount} failed.`
+          : `Booking request email dispatched to ${hotelRequest.hotel}!`
+      );
+      onOpenChange(false);
+    }
   };
 
   return (
@@ -318,10 +353,20 @@ export default function EmailComposeModal({ open, onOpenChange, tour, hotelReque
               type="button"
               className="btn btn-primary d-flex align-items-center gap-2 px-4 py-2.5 rounded-xl border-0 fs-7 fw-semibold shadow-sm transition-click"
               onClick={handleSend}
+              disabled={isSending}
               data-testid="email-send-confirm"
             >
-              <Send size={15} />
-              <span>Send Email</span>
+              {isSending ? (
+                <>
+                  <Loader2 size={15} className="animate-spin" />
+                  <span>Sending…</span>
+                </>
+              ) : (
+                <>
+                  <Send size={15} />
+                  <span>Send Email</span>
+                </>
+              )}
             </button>
           </div>
 

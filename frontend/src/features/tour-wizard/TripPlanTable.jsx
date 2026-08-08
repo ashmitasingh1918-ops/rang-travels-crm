@@ -72,9 +72,15 @@ export default function TripPlanTable({
               const selectedCityObj = cities.find(c => c.id === row.cityId);
               const cityName = selectedCityObj ? selectedCityObj.name : "";
 
-              // Filter Hotels list based on selected City
+              // Filter Hotels list based on selected City.
+              // Backend returns hotel.city as an object { id, name, ... },
+              // so we check both hotel.city.name (API shape) and hotel.city (legacy string).
               const cityHotels = cityName
-                ? hotels.filter(h => h.city?.toLowerCase() === cityName.toLowerCase())
+                ? hotels.filter(h => {
+                    const hotelCityName =
+                      (typeof h.city === "object" ? h.city?.name : h.city) || "";
+                    return hotelCityName.toLowerCase() === cityName.toLowerCase();
+                  })
                 : [];
 
               return (

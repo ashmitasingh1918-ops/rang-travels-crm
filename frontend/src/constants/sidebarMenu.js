@@ -37,18 +37,30 @@ export const sidebarMenu = [
     },
     {
         id: 7,
+        title: "Hotel Responses",
+        path: "/hotel-responses",
+        icon: "bi bi-check2-circle",
+    },
+    {
+        id: 8,
         title: "Email Center",
         path: "/email-center",
         icon: "bi bi-envelope",
     },
     {
-        id: 8,
+        id: 9,
+        title: "Email History",
+        path: "/email-history",
+        icon: "bi bi-clock-history",
+    },
+    {
+        id: 10,
         title: "Staff Management",
         path: "/staff-management",
         icon: "bi bi-shield",
     },
     {
-        id: 9,
+        id: 11,
         title: "Settings",
         path: "/settings",
         icon: "bi bi-gear",

@@ -17,6 +17,12 @@ import Profile from "../pages/Profile";
 import Security from "../pages/Security";
 import CompanyDetails from "../pages/CompanyDetails";
 
+// New workflow pages
+import TourDetail from "../pages/TourDetail";
+import HotelResponses from "../pages/HotelResponses";
+import EmailHistory from "../pages/EmailHistory";
+import EmailSettings from "../pages/EmailSettings";
+
 function AppRoutes() {
   return (
     <Routes>
@@ -24,6 +30,7 @@ function AppRoutes() {
       <Route path="/cities" element={<Cities />} />
       <Route path="/hotels" element={<Hotels />} />
       <Route path="/tours" element={<Tours />} />
+      <Route path="/tours/:tourId" element={<TourDetail />} />
       <Route path="/clients" element={<Clients />} />
       <Route path="/agents" element={<Agents />} />
       <Route path="/email-center" element={<EmailCenter />} />
@@ -31,11 +38,17 @@ function AppRoutes() {
       <Route path="/reports" element={<Reports />} />
       <Route path="/bookings" element={<Bookings />} />
 
+      {/* New workflow routes */}
+      <Route path="/hotel-responses" element={<HotelResponses />} />
+      <Route path="/email-history" element={<EmailHistory />} />
+      <Route path="/email-settings" element={<EmailSettings />} />
+
       {/* Settings */}
       <Route path="/settings" element={<Settings />} />
       <Route path="/settings/profile" element={<Profile />} />
       <Route path="/settings/security" element={<Security />} />
       <Route path="/settings/company" element={<CompanyDetails />} />
+      <Route path="/settings/email" element={<EmailSettings />} />
 
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
